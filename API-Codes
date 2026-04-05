@@ -1,0 +1,14 @@
+# Get the default token secret name
+SECRET_NAME=$(kubectl get secrets -n kube-system | grep 'bootstrap-token-*' | awk '{print $1}')
+
+# Get the token ID and secret
+TOKEN_ID=$(kubectl get secret -n kube-system $SECRET_NAME -o jsonpath='{.data.token-id}' | base64 --decode)
+TOKEN_SECRET=$(kubectl get secret -n kube-system $SECRET_NAME -o jsonpath='{.data.token-secret}' | base64 --decode)
+
+# Generate the token: <token-id>.<token-secret>
+TOKEN="$TOKEN_ID.$TOKEN_SECRET"
+echo $TOKEN
+
+
+# Store the token in a file
+echo $TOKEN > /root/token.txt
