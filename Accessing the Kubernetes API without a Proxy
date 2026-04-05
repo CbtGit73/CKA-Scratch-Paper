@@ -1,3 +1,12 @@
+export CLUSTER_NAME=$(kubectl config view -o jsonpath='{.clusters[0].name}')
+echo $CLUSTER_NAME
+
+APISERVER=$(kubectl config view -o jsonpath="{.clusters[?(@.name==\"$CLUSTER_NAME\")].cluster.server}")
+echo $APISERVER
+
+# Alternative
+kubectl config view -o yaml | grep server
+
 # Get the default token secret name
 SECRET_NAME=$(kubectl get secrets -n kube-system | grep 'bootstrap-token-*' | awk '{print $1}')
 
@@ -9,6 +18,7 @@ TOKEN_SECRET=$(kubectl get secret -n kube-system $SECRET_NAME -o jsonpath='{.dat
 TOKEN="$TOKEN_ID.$TOKEN_SECRET"
 echo $TOKEN
 
-
 # Store the token in a file
 echo $TOKEN > /root/token.txt
+
+curl -X GET $APISERVER/api --header "Authorization: Bearer $TOKEN" --insecure
