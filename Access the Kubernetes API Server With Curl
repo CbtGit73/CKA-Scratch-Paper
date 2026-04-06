@@ -12,3 +12,6 @@ TOKEN=$(kubectl get secret $SECRET_NAME -o jsonpath='{.data.token}' | base64 --d
 
 # Use curl to Access the API Server:
 curl --cacert ca.crt -H "Authorization: Bearer $TOKEN" "$APISERVER/api/v1/namespaces/default/pods"
+
+
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user": "system:serviceaccount:default:john", "namespace": "default", "resource": "pods", "apiGroup": "*" , "readonly": true}}
