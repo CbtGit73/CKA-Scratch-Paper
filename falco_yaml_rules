@@ -1,0 +1,20 @@
+# Enable file_output in /etc/falco/falco.yaml on the controlplane node:
+file_output:
+  enabled: true
+  keep_alive: false
+  filename: /opt/security_incidents/alerts.log
+
+#Next, add the updated rule under the /etc/falco/falco_rules.local.yaml and hot reload the Falco service:
+- rule: Write below binary dir
+  desc: an attempt to write to any file below a set of binary directories
+  condition: >
+    bin_dir and evt.dir = < and open_write
+    and not package_mgmt_procs
+    and not exe_running_docker_save
+    and not python_running_get_pip
+    and not python_running_ms_oms
+    and not user_known_write_below_binary_dir_activities
+  output: >
+    File below a known binary directory opened for writing (user_id=%user.uid file_updated=%fd.name command=%proc.cmdline)
+  priority: CRITICAL
+  tags: [filesystem, mitre_persistence]
