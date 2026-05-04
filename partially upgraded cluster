@@ -1,0 +1,26 @@
+#SSH into the node02 node:
+ssh node02
+#Use any text editor you prefer to open the file that defines the Kubernetes apt repository.
+vim /etc/apt/sources.list.d/kubernetes.list
+#Update the version in the URL to the next available minor release, i.e v1.35.
+deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /
+#After making changes, save the file and exit from your text editor. Proceed with the next instruction.
+echo 'y' | curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+sudo apt-get update
+apt-cache madison kubeadm
+#Momentarily go back to cluster1-controlplane node to drain the worker node:
+kubectl drain node02 --ignore-daemonsets --delete-emptydir-data
+#Run the following command to upgrade the node:
+sudo kubeadm upgrade node
+#Unhold kubeadm if its on hold while upgrading or use the appropriate suggestion mentioned in the output.
+sudo apt-mark unhold kubelet kubectl
+sudo apt-get install --allow-change-held-packages -y kubelet=1.35.0-1.1 kubectl=1.35.0-1.1
+#Optionally hold them again:
+sudo apt-mark hold kubelet kubectl
+#Run the following commands to refresh the systemd configuration and apply changes to the Kubelet service:
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+#Go back to the controlplane node again and uncordon node02:
+kubectl uncordon node02
+#Finally verify the version upgrade:
+kubectl get nodes
